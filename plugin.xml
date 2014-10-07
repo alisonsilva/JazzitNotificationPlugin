@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="br.com.laminarsoft.jazzitnotification"
+    version="0.1.0">
+    <name>jazzitnotification</name>
+    <description>Cordova jazzitnotification Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,jazzitnotification</keywords>
+    <js-module src="www/jazzitnotification.js" name="jazzitnotification">
+        <clobbers target="navigator.jazzitnotification" />
+    </js-module>
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="JazzitNotificationPlugin">
+                <param name="android-package" value="br.com.laminarsoft.jazzitnotification.JazzitNotificationPlugin"/>
+            </feature>
+        </config-file>
+        <source-file src="src/android/JazzitNotificationPlugin.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
+    </platform>
+</plugin>
+

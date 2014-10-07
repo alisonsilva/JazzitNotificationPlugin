@@ -33,8 +33,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private static List<EventInfo> pendingEvents = new ArrayList<EventInfo>();
     private NotificationManager notificationManager;
     private ExecutorService executorService;
-    
-    private CordovaInterface cordova;	
 	
     private static class EventInfo {
         public String action;
@@ -52,7 +50,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
         safeToFireEvents = false;
-        this.cordova = cordova;
         notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
         if (JazzitNotificationPlugin.webView == null &&
             NOTIFICATION_CLOSED_ACTION.equals(cordova.getActivity().getIntent().getStringExtra(NOTIFICATION_ACTION_LABEL))) {
@@ -80,7 +77,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			callbackContext.success();
 			return true;
 		} else if("goBackground".equals(action)) {
-            cordova.getActivity().moveTaskToBack(true);
+            this.cordova.getActivity().moveTaskToBack(true);
         }
 		Log.e(LOG_TAG, "Called invalid action: "+action);
 		return false;  

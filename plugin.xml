@@ -19,6 +19,7 @@
             </feature>
         </config-file>
         <source-file src="src/android/JazzitNotificationPlugin.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
+        <source-file src="src/android/NotificationReceiver.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
     </platform>
 </plugin>
 

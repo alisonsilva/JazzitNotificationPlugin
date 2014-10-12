@@ -19,6 +19,7 @@ import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -98,27 +99,23 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         } else if("showMessage".equals(action)) {
         	boolean isInBackground = JazzitNotificationPlugin.isApplicationSentToBackground(cordova.getActivity());
         	if (isInBackground) {
-        		Log.i(LOG_TAG, "Prestes a exiber as mensagens");
         		String notificationId = args.getString(0);
         		JSONObject options = args.getJSONObject(1);
-        		Log.i(LOG_TAG, "Mensagens recuperadas: ");
                 Resources resources = cordova.getActivity().getResources();
-                
-                Log.i(LOG_TAG, "Resources 1: " + resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width));
-                Log.i(LOG_TAG, "Resources 2: " + resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height));
                 
                 Bitmap largeIcon = makeBitmap(options.getString("iconUrl"),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height));
-        		Log.i(LOG_TAG, "Bitmap criado");
-                
                 
                 int smallIconId = resources.getIdentifier("notification_icon", "drawable", cordova.getActivity().getPackageName());
                 if (smallIconId == 0) {
                     smallIconId = resources.getIdentifier("icon", "drawable", cordova.getActivity().getPackageName());
                 }
-
-        		Log.i(LOG_TAG, "Small icon id criado");
+                
+                Intent notifClickedIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
+                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.cordova.getActivity());
+                stackBuilder.addParentStack(this.cordova.getActivity());
+                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.valueOf(notificationId), PendingIntent.FLAG_CANCEL_CURRENT);
                 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(cordova.getActivity())
                     .setSmallIcon(smallIconId)
@@ -126,10 +123,9 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                     .setContentText(options.getString("message"))
                     .setLargeIcon(largeIcon)
                     .setPriority(options.optInt("priority"))
-                    .setContentIntent(makePendingIntent(NOTIFICATION_CLICKED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT))
+                    .setContentIntent(resultPendingIntent)
                     .setDeleteIntent(makePendingIntent(NOTIFICATION_CLOSED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT));   
 
-        		Log.i(LOG_TAG, "Builder criado");
 
         		double eventTime = options.optDouble("eventTime");
                 if (eventTime != 0) {
@@ -146,8 +142,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 String type = options.getString("type");
                 Notification notification;
         		
-                Log.i(LOG_TAG, "Construindo notificação");
-
         		if ("image".equals(type)) {
                     NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle(builder);
                     String bigImageUrl = options.optString("imageUrl");
@@ -200,7 +194,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private Bitmap makeBitmap(String imageUrl, int scaledWidth, int scaledHeight) {
         InputStream largeIconStream;
         try {
-        	Log.i(LOG_TAG, "makeBitmap: " + imageUrl + ", " + scaledWidth + ", " + scaledHeight);
             Uri uri = Uri.parse(imageUrl);
             CordovaResourceApi resourceApi = webView.getResourceApi();
             uri = resourceApi.remapUri(uri);
@@ -216,10 +209,8 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             Log.e(LOG_TAG, "Failed to close image file");
         }
         if (scaledWidth != 0 && scaledHeight != 0) {
-        	Log.i(LOG_TAG, "creating scale bitmap");
             return Bitmap.createScaledBitmap(unscaledBitmap, scaledWidth, scaledHeight, false);
         } else {
-        	Log.i(LOG_TAG, "creating unscaled bitmap");
             return unscaledBitmap;
         }
     }	
@@ -242,9 +233,11 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 	
 	public static void handleNotificationAction(Context context, Intent intent) {
         String[] strings = intent.getAction().substring(context.getPackageName().length() + 1).split("\\.", 3);
+        for(String str : strings) {
+        	Log.i(LOG_TAG, "Str : " + str);
+        }
         int buttonIndex = strings.length >= 3 ? Integer.parseInt(strings[2]) : -1;
-        triggerJavascriptEvent(context, (ComponentName) intent.getExtras().getParcelable(COMPONENT_NAME_LABEL),
-                               new EventInfo(strings[0], strings[1], buttonIndex));
+        triggerJavascriptEvent(context, (ComponentName) intent.getExtras().getParcelable(COMPONENT_NAME_LABEL), new EventInfo(strings[0], strings[1], buttonIndex));
     }
     
     private static void triggerJavascriptEventNow(Context context, ComponentName componentName, EventInfo eventInfo) {

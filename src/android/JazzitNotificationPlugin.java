@@ -98,6 +98,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         } else if("showMessage".equals(action)) {
         	boolean isInBackground = JazzitNotificationPlugin.isApplicationSentToBackground(cordova.getActivity());
         	if (isInBackground) {
+        		Log.i(LOG_TAG, "Prestes a exiber as mensagens");
         		String notificationId = args.getString(0);
         		JSONObject options = args.getJSONObject(1);
         		Log.i(LOG_TAG, "Mensagens recuperadas: ");

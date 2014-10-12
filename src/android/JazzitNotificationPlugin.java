@@ -100,14 +100,21 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         	if (isInBackground) {
         		String notificationId = args.getString(0);
         		JSONObject options = args.getJSONObject(1);
+        		Log.i(LOG_TAG, "Mensagens recuperadas: ");
                 Resources resources = cordova.getActivity().getResources();
                 Bitmap largeIcon = makeBitmap(options.getString("iconUrl"),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height));
+        		Log.i(LOG_TAG, "Bitmap criado");
+                
+                
                 int smallIconId = resources.getIdentifier("notification_icon", "drawable", cordova.getActivity().getPackageName());
                 if (smallIconId == 0) {
                     smallIconId = resources.getIdentifier("icon", "drawable", cordova.getActivity().getPackageName());
                 }
+
+        		Log.i(LOG_TAG, "Small icon id criado");
+                
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(cordova.getActivity())
                     .setSmallIcon(smallIconId)
                     .setContentTitle(options.getString("title"))
@@ -117,7 +124,9 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                     .setContentIntent(makePendingIntent(NOTIFICATION_CLICKED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT))
                     .setDeleteIntent(makePendingIntent(NOTIFICATION_CLOSED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT));   
 
-                double eventTime = options.optDouble("eventTime");
+        		Log.i(LOG_TAG, "Builder criado");
+
+        		double eventTime = options.optDouble("eventTime");
                 if (eventTime != 0) {
                     builder.setWhen(Math.round(eventTime));
                 }
@@ -131,7 +140,10 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 }
                 String type = options.getString("type");
                 Notification notification;
-                if ("image".equals(type)) {
+        		
+                Log.i(LOG_TAG, "Construindo notificação");
+
+        		if ("image".equals(type)) {
                     NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle(builder);
                     String bigImageUrl = options.optString("imageUrl");
                     if (bigImageUrl != null && bigImageUrl.trim().length() > 0) {

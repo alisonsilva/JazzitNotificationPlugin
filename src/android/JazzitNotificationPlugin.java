@@ -103,6 +103,10 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         		JSONObject options = args.getJSONObject(1);
         		Log.i(LOG_TAG, "Mensagens recuperadas: ");
                 Resources resources = cordova.getActivity().getResources();
+                
+                Log.i(LOG_TAG, "Resources 1: " + resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width));
+                Log.i(LOG_TAG, "Resources 2: " + resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height));
+                
                 Bitmap largeIcon = makeBitmap(options.getString("iconUrl"),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_width),
                                               resources.getDimensionPixelSize(android.R.dimen.notification_large_icon_height));
@@ -196,6 +200,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private Bitmap makeBitmap(String imageUrl, int scaledWidth, int scaledHeight) {
         InputStream largeIconStream;
         try {
+        	Log.i(LOG_TAG, "makeBitmap: " + imageUrl + ", " + scaledWidth + ", " + scaledHeight);
             Uri uri = Uri.parse(imageUrl);
             CordovaResourceApi resourceApi = webView.getResourceApi();
             uri = resourceApi.remapUri(uri);
@@ -211,8 +216,10 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             Log.e(LOG_TAG, "Failed to close image file");
         }
         if (scaledWidth != 0 && scaledHeight != 0) {
+        	Log.i(LOG_TAG, "creating scale bitmap");
             return Bitmap.createScaledBitmap(unscaledBitmap, scaledWidth, scaledHeight, false);
         } else {
+        	Log.i(LOG_TAG, "creating unscaled bitmap");
             return unscaledBitmap;
         }
     }	

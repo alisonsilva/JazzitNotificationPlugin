@@ -112,10 +112,10 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                     smallIconId = resources.getIdentifier("icon", "drawable", cordova.getActivity().getPackageName());
                 }
                 
-                Intent notifClickedIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
-                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.cordova.getActivity());
-                stackBuilder.addParentStack(this.cordova.getActivity());
-                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.valueOf(notificationId), PendingIntent.FLAG_CANCEL_CURRENT);
+//                Intent notifClickedIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
+//                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.cordova.getActivity());
+//                stackBuilder.addParentStack(this.cordova.getActivity());
+//                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.valueOf(notificationId), PendingIntent.FLAG_CANCEL_CURRENT);
                 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(cordova.getActivity())
                     .setSmallIcon(smallIconId)
@@ -123,7 +123,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                     .setContentText(options.getString("message"))
                     .setLargeIcon(largeIcon)
                     .setPriority(options.optInt("priority"))
-                    .setContentIntent(resultPendingIntent)
+                    .setContentIntent(makePendingIntent(NOTIFICATION_CLICKED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT))
                     .setDeleteIntent(makePendingIntent(NOTIFICATION_CLOSED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT));   
 
 
@@ -216,6 +216,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     }	
 	
     public PendingIntent makePendingIntent(String action, String notificationId, int buttonIndex, int flags) {
+    	Log.i(LOG_TAG, "making pending intent 1: " + cordova.getActivity() + ", " + cordova.getActivity().getIntent().getComponent());
         return makePendingIntent(cordova.getActivity(), cordova.getActivity().getIntent().getComponent(), action, notificationId, buttonIndex, flags);
     }
     
@@ -227,6 +228,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			fullAction += "." + buttonIndex;
 		}
 		intent.setAction(fullAction);
+		Log.i(LOG_TAG, "making pending intent 2: " + componentName + ", " + fullAction);
 		intent.putExtra(COMPONENT_NAME_LABEL, componentName);
 		return PendingIntent.getBroadcast(context, 0, intent, flags);
 	}
@@ -283,6 +285,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         // This is the "normal" case in which the main activity is still around and ready to execute event handlers
         // in javascript immediately. The activity may not necessarily be in the foreground so we still need to send
         // an intent that brings it to the foreground if the notification or a notification button was clicked.
+        Log.i(LOG_TAG, "Triggering javascript event now");
         triggerJavascriptEventNow(context, componentName, eventInfo);
     }
 

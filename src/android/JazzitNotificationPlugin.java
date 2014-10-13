@@ -235,6 +235,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 	
 	public static void handleNotificationAction(Context context, Intent intent) {
         String[] strings = intent.getAction().substring(context.getPackageName().length() + 1).split("\\.", 3);
+        Log.i(LOG_TAG, "Str strings: " + strings);
         for(String str : strings) {
         	Log.i(LOG_TAG, "Str : " + str);
         }

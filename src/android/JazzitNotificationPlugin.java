@@ -121,6 +121,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 //                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.valueOf(notificationId), PendingIntent.FLAG_CANCEL_CURRENT);
                 
                 Intent viewIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
+                viewIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 PendingIntent viewPendingIntent = PendingIntent.getActivity(cordova.getActivity(), 0, viewIntent, 0);
                 NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(cordova.getActivity())
                 	.setSmallIcon(smallIconId)

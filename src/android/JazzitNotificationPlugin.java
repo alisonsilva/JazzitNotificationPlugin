@@ -111,14 +111,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 if (smallIconId == 0) {
                     smallIconId = resources.getIdentifier("icon", "drawable", cordova.getActivity().getPackageName());
                 }
-  
-                
-                Log.i(LOG_TAG, "Cordova activity: " + cordova.getActivity().getClass());
-                
-//                Intent notifClickedIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
-//                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.cordova.getActivity());
-//                stackBuilder.addParentStack(this.cordova.getActivity());
-//                PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.valueOf(notificationId), PendingIntent.FLAG_CANCEL_CURRENT);
                 
                 Intent viewIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
                 viewIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -135,28 +127,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 notificationBuilder.setOngoing(true);
                 
                 notificationManager.notify("notif_jazzit".hashCode(), notificationBuilder.build());
-                
-//                NotificationCompat.Builder builder = new NotificationCompat.Builder(cordova.getActivity())
-//                    .setSmallIcon(smallIconId)
-//                    .setContentTitle(options.getString("title"))
-//                    .setContentText(options.getString("message"))
-//                    .setLargeIcon(largeIcon)
-//                    .setPriority(options.optInt("priority"))
-//                    .setContentIntent(makePendingIntent(NOTIFICATION_CLICKED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT))
-//                    .setDeleteIntent(makePendingIntent(NOTIFICATION_CLOSED_ACTION, notificationId, -1, PendingIntent.FLAG_CANCEL_CURRENT));   
-//
-//
-//                
-//        		double eventTime = options.optDouble("eventTime");
-//                if (eventTime != 0) {
-//                    builder.setWhen(Math.round(eventTime));
-//                }
-//                Notification notification;
-//        		
-//                NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle(builder);
-//                bigTextStyle.bigText(options.getString("message"));
-//                notification = bigTextStyle.build();
-//                notificationManager.notify("notif_jazzit".hashCode(), notification);                
         	}
         	callbackContext.success();
 			return true;

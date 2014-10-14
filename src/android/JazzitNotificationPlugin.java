@@ -122,14 +122,17 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 
                 Intent viewIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
                 viewIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                PendingIntent viewPendingIntent = PendingIntent.getActivity(cordova.getActivity(), 0, viewIntent, Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                PendingIntent viewPendingIntent = PendingIntent.getActivity(cordova.getActivity(), PendingIntent.FLAG_CANCEL_CURRENT, viewIntent, 0);
                 NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(cordova.getActivity())
                 	.setSmallIcon(smallIconId)
                 	.setContentTitle(options.getString("title"))
                 	.setContentText(options.getString("message"))
+                	.setPriority(5)
                 	.setContentIntent(viewPendingIntent)
                 	.setAutoCancel(true)
+                	.setOngoing(true)
                 	.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+                notificationBuilder.setOngoing(true);
                 
                 notificationManager.notify("notif_jazzit".hashCode(), notificationBuilder.build());
                 

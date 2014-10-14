@@ -111,6 +111,9 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 if (smallIconId == 0) {
                     smallIconId = resources.getIdentifier("icon", "drawable", cordova.getActivity().getPackageName());
                 }
+  
+                
+                Log.i(LOG_TAG, "Cordova activity: " + cordova.getActivity().getClass());
                 
 //                Intent notifClickedIntent = new Intent(cordova.getActivity(), cordova.getActivity().getClass());
 //                TaskStackBuilder stackBuilder = TaskStackBuilder.create(this.cordova.getActivity());
@@ -142,33 +145,9 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
                 String type = options.getString("type");
                 Notification notification;
         		
-        		if ("image".equals(type)) {
-                    NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle(builder);
-                    String bigImageUrl = options.optString("imageUrl");
-                    if (bigImageUrl != null && bigImageUrl.trim().length() > 0) {
-                        bigPictureStyle.bigPicture(makeBitmap(bigImageUrl, 0, 0));
-                    }
-                    notification = bigPictureStyle.build();
-                } else if ("list".equals(type)) {
-                    NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle(builder);
-                    JSONArray items = options.optJSONArray("items");
-                    if (items != null) {
-                        for (int i = 0; i < items.length(); i++) {
-                            JSONObject item = items.getJSONObject(i);
-                            inboxStyle.addLine(Html.fromHtml("<b>" + item.getString("title") + "</b>&nbsp;&nbsp;&nbsp;&nbsp;"
-                                                             + item.getString("message")));
-                        }
-                    }
-                    notification = inboxStyle.build();
-                } else {
-                    if ("progress".equals(type)) {
-                        int progress = options.optInt("progress");
-                        builder.setProgress(100, progress, false);
-                    }
-                    NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle(builder);
-                    bigTextStyle.bigText(options.getString("message"));
-                    notification = bigTextStyle.build();
-                }
+                NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle(builder);
+                bigTextStyle.bigText(options.getString("message"));
+                notification = bigTextStyle.build();
                 notificationManager.notify(notificationId.hashCode(), notification);                
         	}
         	callbackContext.success();

@@ -35,6 +35,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.IntentCompat;
+import android.util.Base64;
+import android.util.Base64InputStream;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -107,7 +109,8 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             Resources resources = cordova.getActivity().getResources();
             Activity cordActivity = cordova.getActivity();
         	String fileName = options.getString("fileName");
-        	byte[] conteudo = options.getString("conteudo").getBytes();
+        	String content = options.getString("conteudo");
+        	byte[] conteudo = Base64.decode(content, Base64.DEFAULT);
         	String externalDirectory = Environment.getExternalStorageDirectory().toString();
         	File myFolder = new File(externalDirectory, "jazzit");
         	try {

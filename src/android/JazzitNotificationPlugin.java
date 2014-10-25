@@ -1,5 +1,9 @@
 package br.com.laminarsoft.jazzitnotification;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +18,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -27,10 +32,11 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.IntentCompat;
-import android.text.Html;
 import android.util.Log;
+import android.widget.Toast;
 
 @SuppressWarnings("all")
 public class JazzitNotificationPlugin extends CordovaPlugin{
@@ -96,6 +102,50 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             this.cordova.getActivity().moveTaskToBack(true);
 			callbackContext.success();
 			return true;
+        } else if ("storeFile".equals(action)) {
+    		JSONObject options = args.getJSONObject(0);
+            Resources resources = cordova.getActivity().getResources();
+            Activity cordActivity = cordova.getActivity();
+        	String fileName = options.getString("fileName");
+        	byte[] conteudo = options.getString("conteudo").getBytes();
+        	String externalDirectory = Environment.getExternalStorageDirectory().toString();
+        	File myFolder = new File(externalDirectory, "jazzit");
+        	try {
+        		myFolder.mkdir();
+        		File newfile = new File(myFolder, fileName);
+        		newfile.createNewFile();
+        		FileOutputStream fous = new FileOutputStream(newfile);
+        		fous.write(conteudo);
+			} catch (FileNotFoundException e) {
+				Log.e(LOG_TAG, "Erro criando arquivo: " + e.getMessage()); 
+			} catch (IOException e) {
+				Log.e(LOG_TAG, "Erro escrevendo arquivo: " + e.getMessage());
+			}        	
+			callbackContext.success();
+			return true;        	
+        } else if ("openFile".equals(action)) {
+    		JSONObject options = args.getJSONObject(0);
+            Resources resources = cordova.getActivity().getResources();
+            Activity cordActivity = cordova.getActivity();
+        	String fileName = options.getString("fileName");
+        	String fileType = options.getString("fileType");
+        	String externalDirectory = Environment.getExternalStorageDirectory().toString();
+        	
+        	File file = new File(externalDirectory + "/jazzit/" + fileName);
+        	Intent target = new Intent(Intent.ACTION_VIEW);
+        	target.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        	target.setDataAndType(Uri.fromFile(file), fileType);
+        	Intent intent = Intent.createChooser(target, "Abrir arquivo");
+        	
+        	try {
+				cordActivity.startActivity(intent);
+			} catch (ActivityNotFoundException e) {
+				Log.e(LOG_TAG, "Erro abrindo arquivo: " + e.getMessage());
+				Toast.makeText(cordActivity, "Não foi possível abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+			}
+        	
+			callbackContext.success();
+			return true;        	
         } else if("showMessage".equals(action)) {
         	boolean isInBackground = JazzitNotificationPlugin.isApplicationSentToBackground(cordova.getActivity());
         	if (isInBackground) {

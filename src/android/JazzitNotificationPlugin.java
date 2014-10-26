@@ -119,11 +119,13 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         		newfile.createNewFile();
         		FileOutputStream fous = new FileOutputStream(newfile);
         		fous.write(conteudo);
+        		fous.flush();
+        		fous.close();
 			} catch (FileNotFoundException e) {
 				Log.e(LOG_TAG, "Erro criando arquivo: " + e.getMessage()); 
 			} catch (IOException e) {
 				Log.e(LOG_TAG, "Erro escrevendo arquivo: " + e.getMessage());
-			}        	
+			} 
 			callbackContext.success();
 			return true;        	
         } else if ("openFile".equals(action)) {

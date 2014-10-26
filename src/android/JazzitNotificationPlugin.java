@@ -135,9 +135,13 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     			escreveArquivo(vo.nomeArquivo, vo.arqAnexo);
     			exibeArquivo(vo.nomeArquivo, vo.type);
     		} catch (UnsupportedEncodingException e) {
+    			Log.e(LOG_TAG, "Erro ao alterar encoding (JazzitNotificationPlutin): " + e.getMessage());
     		} catch (ClientProtocolException e) {			
+    			Log.e(LOG_TAG, "Erro de protocolo (JazzitNotificationPlutin): " + e.getMessage());
     		} catch (IOException e) {			
+    			Log.e(LOG_TAG, "Erro de IO (JazzitNotificationPlutin): " + e.getMessage());
     		} catch (Exception e) {    			
+    			Log.e(LOG_TAG, "Erro genérico (JazzitNotificationPlutin): " + e.getMessage());
     		}    		
         	
         	callbackContext.success();

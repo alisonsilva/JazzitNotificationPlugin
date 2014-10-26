@@ -17,6 +17,9 @@ var jazzitnotification = {
     },
     openFile : function(successCallback, failureCallback, options) {
         cordova.exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'openFile', [options]);
+    },
+    retrieveAndShowFile : function(successCallback, failureCallback, options) {
+        cordova.exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'retrieveAndShowFile', [options]);
     }
 };
 

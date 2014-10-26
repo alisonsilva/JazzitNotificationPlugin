@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -14,9 +16,17 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaWebView;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -36,7 +46,6 @@ import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.IntentCompat;
 import android.util.Base64;
-import android.util.Base64InputStream;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -104,50 +113,53 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             this.cordova.getActivity().moveTaskToBack(true);
 			callbackContext.success();
 			return true;
+        } else if("retrieveAndShowFile".equals(action)) {
+        	JSONObject options = args.getJSONObject(0);
+        	String usuario = options.getString("usuario");
+        	String senha = options.getString("senha");
+        	String idMensagem = options.getString("idMensagem");
+        	
+    		HttpClient httpclient = new DefaultHttpClient();
+    		String url = "http://localhost:8080/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/" + idMensagem + "/" + usuario;
+    		url += "?j_username=" + usuario + "&j_password=" + senha + "&timestamp="+ (new Date()).getTime();
+    		
+    		HttpGet httpGet = new HttpGet(url);
+    		
+    		try {
+    			httpGet.addHeader("Accept", "application/xml");
+    			HttpResponse response = httpclient.execute(httpGet);    			
+    			org.apache.http.HttpEntity entity = response.getEntity();
+    			Serializer serializer = new Persister();
+    			ArquivoVO vo = serializer.read(ArquivoVO.class, entity.getContent());
+    			
+    			escreveArquivo(vo.nomeArquivo, vo.arqAnexo);
+    			exibeArquivo(vo.nomeArquivo, vo.type);
+    		} catch (UnsupportedEncodingException e) {
+    		} catch (ClientProtocolException e) {			
+    		} catch (IOException e) {			
+    		} catch (Exception e) {    			
+    		}    		
+        	
+        	callbackContext.success();
+        	return true;
         } else if ("storeFile".equals(action)) {
-    		JSONObject options = args.getJSONObject(0);
+    		JSONObject options = args.getJSONObject(0);    		
             Resources resources = cordova.getActivity().getResources();
             Activity cordActivity = cordova.getActivity();
         	String fileName = options.getString("fileName");
         	String content = options.getString("conteudo");
         	byte[] conteudo = Base64.decode(content, Base64.DEFAULT);
-        	String externalDirectory = Environment.getExternalStorageDirectory().toString();
-        	File myFolder = new File(externalDirectory, "jazzit");
-        	try {
-        		myFolder.mkdir();
-        		File newfile = new File(myFolder, fileName);
-        		newfile.createNewFile();
-        		FileOutputStream fous = new FileOutputStream(newfile);
-        		fous.write(conteudo);
-        		fous.flush();
-        		fous.close();
-			} catch (FileNotFoundException e) {
-				Log.e(LOG_TAG, "Erro criando arquivo: " + e.getMessage()); 
-			} catch (IOException e) {
-				Log.e(LOG_TAG, "Erro escrevendo arquivo: " + e.getMessage());
-			} 
+        	
+        	escreveArquivo(fileName, conteudo); 
 			callbackContext.success();
 			return true;        	
         } else if ("openFile".equals(action)) {
     		JSONObject options = args.getJSONObject(0);
             Resources resources = cordova.getActivity().getResources();
-            Activity cordActivity = cordova.getActivity();
         	String fileName = options.getString("fileName");
         	String fileType = options.getString("fileType");
-        	String externalDirectory = Environment.getExternalStorageDirectory().toString();
         	
-        	File file = new File(externalDirectory + "/jazzit/" + fileName);
-        	Intent target = new Intent(Intent.ACTION_VIEW);
-        	target.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        	target.setDataAndType(Uri.fromFile(file), fileType);
-        	Intent intent = Intent.createChooser(target, "Abrir arquivo");
-        	
-        	try {
-				cordActivity.startActivity(intent);
-			} catch (ActivityNotFoundException e) {
-				Log.e(LOG_TAG, "Erro abrindo arquivo: " + e.getMessage());
-				Toast.makeText(cordActivity, "Não foi possível abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
-			}
+            exibeArquivo(fileName, fileType);
         	
 			callbackContext.success();
 			return true;        	
@@ -188,6 +200,41 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         }
 		Log.e(LOG_TAG, "Called invalid action: "+action);
 		return false;  
+	}
+
+	private void exibeArquivo(String fileName, String fileType) {
+		Activity cordActivity = cordova.getActivity();
+		String externalDirectory = Environment.getExternalStorageDirectory().toString();        	
+		File file = new File(externalDirectory + "/jazzit/" + fileName);
+		Intent target = new Intent(Intent.ACTION_VIEW);
+		target.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		target.setDataAndType(Uri.fromFile(file), fileType);
+		Intent intent = Intent.createChooser(target, "Abrir arquivo");
+		
+		try {
+			cordActivity.startActivity(intent);
+		} catch (ActivityNotFoundException e) {
+			Log.e(LOG_TAG, "Erro abrindo arquivo: " + e.getMessage());
+			Toast.makeText(cordActivity, "Não foi possível abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private void escreveArquivo(String fileName, byte[] conteudo) {
+		String externalDirectory = Environment.getExternalStorageDirectory().toString();
+		File myFolder = new File(externalDirectory, "jazzit");
+		try {
+			myFolder.mkdir();
+			File newfile = new File(myFolder, fileName);
+			newfile.createNewFile();
+			FileOutputStream fous = new FileOutputStream(newfile);
+			fous.write(conteudo);
+			fous.flush();
+			fous.close();
+		} catch (FileNotFoundException e) {
+			Log.e(LOG_TAG, "Erro criando arquivo: " + e.getMessage()); 
+		} catch (IOException e) {
+			Log.e(LOG_TAG, "Erro escrevendo arquivo: " + e.getMessage());
+		}
 	}	
 	
 	public static boolean isApplicationSentToBackground(final Context context) {

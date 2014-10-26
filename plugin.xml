@@ -21,6 +21,10 @@
         <source-file src="src/android/JazzitNotificationPlugin.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
         <source-file src="src/android/NotificationReceiver.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
         <source-file src="src/android/ArquivoVO.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
+        <source-file src="platforms/android/src/libs/simple-xml-2.7.1.jar" target-dir="libs" />
+        <source-file src="platforms/android/src/libs/stax-1.2.0.jar" target-dir="libs" />
+        <source-file src="platforms/android/src/libs/stax-api-1.0.1.jar" target-dir="libs" />
+        <source-file src="platforms/android/src/libs/xpp3-1.1.3_8.jar" target-dir="libs" />
     </platform>
 </plugin>
 

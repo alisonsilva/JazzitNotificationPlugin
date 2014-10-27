@@ -131,16 +131,14 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     		String externalDirectory = Environment.getExternalStorageDirectory().toString();
     		String meuArquivo = externalDirectory + "/jazzit/" + nomeArquivo;
     		File myFolder = new File(meuArquivo);
-    		Log.i(LOG_TAG, "Verificando existência arquivo: " + meuArquivo);
 			if(myFolder.exists()) {
-				Log.i(LOG_TAG, "Arquivo já existe localmente. Sendo carregado.");
 				exibeArquivo(nomeArquivo, type);
 			} else if(isOnline()) {
+				final ProgressDialog progress = ProgressDialog.show(cordActivity, "Carregando ...", "Carregando anexo", true);
 				new Thread(new Runnable() {
 					
 					@Override
 					public void run() {
-						ProgressDialog progress = ProgressDialog.show(cordActivity, "Carregando ...", "Carregando anexo", true);
 
 	                    HttpClient httpclient = new DefaultHttpClient();
 			    		String url = RAIZ_CHAMADA_ANEXO + idMensagem + "/" + usuario;

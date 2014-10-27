@@ -131,8 +131,9 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     			org.apache.http.HttpEntity entity = response.getEntity();
     			Serializer serializer = new Persister();
     			ArquivoVO vo = serializer.read(ArquivoVO.class, entity.getContent());
+    			byte[] conteudo = Base64.decode(vo.arqAnexo, Base64.DEFAULT);
     			
-    			escreveArquivo(vo.nomeArquivo, vo.arqAnexo);
+    			escreveArquivo(vo.nomeArquivo, conteudo);
     			exibeArquivo(vo.nomeArquivo, vo.type);
     		} catch (UnsupportedEncodingException e) {
     			Log.e(LOG_TAG, "Erro ao alterar encoding (JazzitNotificationPlutin): " + e.getMessage());

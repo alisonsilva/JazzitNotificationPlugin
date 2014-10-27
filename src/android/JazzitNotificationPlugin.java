@@ -60,6 +60,8 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private static final String NOTIFICATION_CLICKED_ACTION = "NOTIFICATION_CLICKED";
     private static final String NOTIFICATION_CLOSED_ACTION = "NOTIFICATION_CLOSED";
     private static final String NOTIFICATION_BUTTON_CLICKED_ACTION = "NOTIFICATION_BUTTON_CLICKED";
+    
+    private static final String RAIZ_CHAMADA_ANEXO = "http://192.168.1.6:8080/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/";
 
     private static CordovaWebView webView;
     private static boolean safeToFireEvents = false;
@@ -120,7 +122,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         	String idMensagem = options.getString("idMensagem");
         	
     		HttpClient httpclient = new DefaultHttpClient();
-    		String url = "http://localhost:8080/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/" + idMensagem + "/" + usuario;
+    		String url = RAIZ_CHAMADA_ANEXO + idMensagem + "/" + usuario;
     		url += "?j_username=" + usuario + "&j_password=" + senha + "&timestamp="+ (new Date()).getTime();
     		
     		HttpGet httpGet = new HttpGet(url);

@@ -21,7 +21,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +40,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
@@ -117,35 +118,66 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			return true;
         } else if("retrieveAndShowFile".equals(action)) {
         	JSONObject options = args.getJSONObject(0);
-        	String usuario = options.getString("usuario");
-        	String senha = options.getString("senha");
-        	String idMensagem = options.getString("idMensagem");
+        	final String usuario = options.getString("usuario");
+        	final String senha = options.getString("senha");
+        	final String idMensagem = options.getString("idMensagem");
+        	final String nomeArquivo = options.getString("nomeArquivo");
+        	final String type = options.getString("type");
+        	final Activity cordActivity = cordova.getActivity();
         	
-    		HttpClient httpclient = new DefaultHttpClient();
-    		String url = RAIZ_CHAMADA_ANEXO + idMensagem + "/" + usuario;
-    		url += "?j_username=" + usuario + "&j_password=" + senha + "&timestamp="+ (new Date()).getTime();
-    		
-    		HttpGet httpGet = new HttpGet(url);
-    		
-    		try {
-    			httpGet.addHeader("Accept", "application/xml");
-    			HttpResponse response = httpclient.execute(httpGet);    			
-    			org.apache.http.HttpEntity entity = response.getEntity();
-    			Serializer serializer = new Persister();
-    			ArquivoVO vo = serializer.read(ArquivoVO.class, entity.getContent());
-    			byte[] conteudo = Base64.decode(vo.arqAnexo, Base64.DEFAULT);
-    			
-    			escreveArquivo(vo.nomeArquivo, conteudo);
-    			exibeArquivo(vo.nomeArquivo, vo.type);
-    		} catch (UnsupportedEncodingException e) {
-    			Log.e(LOG_TAG, "Erro ao alterar encoding (JazzitNotificationPlutin): " + e.getMessage());
-    		} catch (ClientProtocolException e) {			
-    			Log.e(LOG_TAG, "Erro de protocolo (JazzitNotificationPlutin): " + e.getMessage());
-    		} catch (IOException e) {			
-    			Log.e(LOG_TAG, "Erro de IO (JazzitNotificationPlutin): " + e.getMessage());
-    		} catch (Exception e) {    			
-    			Log.e(LOG_TAG, "Erro genérico (JazzitNotificationPlutin): " + e.getMessage());
-    		}    		
+        	Resources resources = cordova.getActivity().getResources();
+        	
+    		String externalDirectory = Environment.getExternalStorageDirectory().toString();
+    		File myFolder = new File(externalDirectory + "jazzit/" + nomeArquivo);
+			if(myFolder.exists()) {
+				exibeArquivo(nomeArquivo, type);
+			} else if(isOnline()) {
+				final NotificationManager mNotifyManager = (NotificationManager) cordActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+				final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(cordActivity);
+				mBuilder.setContentTitle("Recuperando anexo")
+					.setContentText("Em progresso")
+					.setSmallIcon(resources.getIdentifier("notification_icon", "drawable", cordova.getActivity().getPackageName()));
+				
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						mBuilder.setProgress(0, 0, true);
+	                    mNotifyManager.notify(1, mBuilder.build());
+
+	                    HttpClient httpclient = new DefaultHttpClient();
+			    		String url = RAIZ_CHAMADA_ANEXO + idMensagem + "/" + usuario;
+			    		url += "?j_username=" + usuario + "&j_password=" + senha + "&timestamp="+ (new Date()).getTime();
+			    		
+			    		HttpGet httpGet = new HttpGet(url);
+			    		
+			    		try {
+			    			httpGet.addHeader("Accept", "application/xml");
+			    			HttpResponse response = httpclient.execute(httpGet);    			
+			    			org.apache.http.HttpEntity entity = response.getEntity();
+			    			Serializer serializer = new Persister();
+			    			ArquivoVO vo = serializer.read(ArquivoVO.class, entity.getContent());
+			    			byte[] conteudo = Base64.decode(vo.arqAnexo, Base64.DEFAULT);
+			    			
+			    			escreveArquivo(vo.nomeArquivo, conteudo);
+			    			exibeArquivo(vo.nomeArquivo, vo.type);
+			    		} catch (UnsupportedEncodingException e) {
+			    			Log.e(LOG_TAG, "Erro ao alterar encoding (JazzitNotificationPlutin): " + e.getMessage());
+			    		} catch (ClientProtocolException e) {			
+			    			Log.e(LOG_TAG, "Erro de protocolo (JazzitNotificationPlutin): " + e.getMessage());
+			    		} catch (IOException e) {			
+			    			Log.e(LOG_TAG, "Erro de IO (JazzitNotificationPlutin): " + e.getMessage());
+			    		} catch (Exception e) {    			
+			    			Log.e(LOG_TAG, "Erro genérico (JazzitNotificationPlutin): " + e.getMessage());
+			    		} finally {
+			    			mBuilder.setContentText("Recuperação finalizada").setProgress(0, 0, false);
+			                mNotifyManager.notify(1, mBuilder.build());			    		
+			            }
+					}
+				}).start();
+			} else if(!isOnline()) {
+				Toast.makeText(cordActivity, "Não há conexão com a Internet no momento", Toast.LENGTH_LONG).show();
+			}
         	
         	callbackContext.success();
         	return true;
@@ -225,6 +257,12 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			Toast.makeText(cordActivity, "Não foi possível abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
+	
+	public boolean isOnline() {
+	    ConnectivityManager cm = (ConnectivityManager) cordova.getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo netInfo = cm.getActiveNetworkInfo();
+	    return netInfo != null && netInfo.isConnectedOrConnecting();
+	}	
 
 	private void escreveArquivo(String fileName, byte[] conteudo) {
 		String externalDirectory = Environment.getExternalStorageDirectory().toString();

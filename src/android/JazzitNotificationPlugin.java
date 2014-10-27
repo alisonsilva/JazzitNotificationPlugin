@@ -33,6 +33,7 @@ import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -128,22 +129,18 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
         	Resources resources = cordova.getActivity().getResources();
         	
     		String externalDirectory = Environment.getExternalStorageDirectory().toString();
-    		File myFolder = new File(externalDirectory + "jazzit/" + nomeArquivo);
+    		String meuArquivo = externalDirectory + "/jazzit/" + nomeArquivo;
+    		File myFolder = new File(meuArquivo);
+    		Log.i(LOG_TAG, "Verificando existência arquivo: " + meuArquivo);
 			if(myFolder.exists()) {
+				Log.i(LOG_TAG, "Arquivo já existe localmente. Sendo carregado.");
 				exibeArquivo(nomeArquivo, type);
 			} else if(isOnline()) {
-				final NotificationManager mNotifyManager = (NotificationManager) cordActivity.getSystemService(Context.NOTIFICATION_SERVICE);
-				final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(cordActivity);
-				mBuilder.setContentTitle("Recuperando anexo")
-					.setContentText("Em progresso")
-					.setSmallIcon(resources.getIdentifier("notification_icon", "drawable", cordova.getActivity().getPackageName()));
-				
 				new Thread(new Runnable() {
 					
 					@Override
 					public void run() {
-						mBuilder.setProgress(0, 0, true);
-	                    mNotifyManager.notify(1, mBuilder.build());
+						ProgressDialog progress = ProgressDialog.show(cordActivity, "Carregando ...", "Carregando anexo", true);
 
 	                    HttpClient httpclient = new DefaultHttpClient();
 			    		String url = RAIZ_CHAMADA_ANEXO + idMensagem + "/" + usuario;
@@ -170,8 +167,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			    		} catch (Exception e) {    			
 			    			Log.e(LOG_TAG, "Erro genérico (JazzitNotificationPlutin): " + e.getMessage());
 			    		} finally {
-			    			mBuilder.setContentText("Recuperação finalizada").setProgress(0, 0, false);
-			                mNotifyManager.notify(1, mBuilder.build());			    		
+			    			progress.dismiss();
 			            }
 					}
 				}).start();

@@ -23,5 +23,17 @@
         <source-file src="src/android/ArquivoVO.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
         <source-file src="src/android/libs/simple-xml-2.7.1.jar" target-dir="libs" />
     </platform>
+    
+    <!-- ios -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="JazzitNotificacoes">
+                <param name="ios-package" value="LSJNotificationsPlugin"/>
+            </feature>
+        </config-file>
+        <header-file src="src/ios/LSJAsset.h" />
+        <source-file src="src/ios/LSJAsset.m" />        
+    </platform>
+    
 </plugin>
 

@@ -7,9 +7,40 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <SystemConfiguration/SystemConfiguration.h>
 #import <Cordova/CDVPlugin.h>
 
-@interface LSJAsset : CDVPlugin
+
+//
+// DirectoryLocations is a set of global methods for finding the fixed location
+// directoriess.
+//
+@interface NSFileManager (DirectoryLocations)
+
+- (NSString *)findOrCreateDirectory:(NSSearchPathDirectory)searchPathDirectory
+                           inDomain:(NSSearchPathDomainMask)domainMask
+                appendPathComponent:(NSString *)appendComponent
+                              error:(NSError **)errorOut;
+- (NSString *)applicationSupportDirectory;
+
+@end
+
+
+@interface ArquivoXMLParser : NSObject<NSXMLParserDelegate, NSURLConnectionDelegate, UIDocumentInteractionControllerDelegate>
+
+@property (nonatomic) NSInteger codigo;
+@property (nonatomic) NSString *mensagem;
+@property (nonatomic) NSInteger id;
+@property (nonatomic) NSString *nomeArquivo;
+@property (nonatomic) NSString *dhInclusao;
+@property (nonatomic) NSString *urlSite;
+@property (nonatomic) NSString *type;
+@property (nonatomic) NSString *arqAnexo;
+@property (nonatomic) UIViewController *viewController;
+
+@end
+
+@interface LSJAsset : CDVPlugin <UIAlertViewDelegate>
 {}
 
 

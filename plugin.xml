@@ -27,8 +27,8 @@
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
-            <feature name="JazzitNotificacoes">
-                <param name="ios-package" value="LSJNotificationsPlugin"/>
+            <feature name="JazzitNotificationPlugin">
+                <param name="ios-package" value="LSJAsset"/>
             </feature>
         </config-file>
         <header-file src="src/ios/LSJAsset.h" />

@@ -8,6 +8,12 @@
     <description>Cordova jazzitnotification Plugin</description>
     <license>Apache 2.0</license>
     <keywords>cordova,JazzitNotificationPlugin</keywords>
+
+    <js-module src="www/jazzitnotification.js" name="jazzitnotification">
+        <clobbers target="navigator.jazzitnotification" />
+    </js-module>
+
+
     <!-- android -->
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
@@ -15,9 +21,6 @@
                 <param name="android-package" value="br.com.laminarsoft.jazzitnotification.JazzitNotificationPlugin"/>
             </feature>
         </config-file>
-		    <js-module src="www/jazzitnotification.js" name="jazzitnotification">
-		        <clobbers target="navigator.jazzitnotification" />
-		    </js-module>
       
         <source-file src="src/android/JazzitNotificationPlugin.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
         <source-file src="src/android/NotificationReceiver.java" target-dir="src/br/com/laminarsoft/jazzitnotification/" />
@@ -31,10 +34,7 @@
             <feature name="JazzitNotificationPlugin">
                 <param name="ios-package" value="br.com.laminarsoft.jazzitnotification.JazzitNotificationPlugin"/>
             </feature>
-        </config-file>     
-		    <js-module src="www/ios/jazzitnotification.js" name="jazzitnotification">
-		        <clobbers target="navigator.jazzitnotification" />
-		    </js-module>        
+        </config-file>            
         <header-file src="src/ios/LSJAsset.h" />
         <source-file src="src/ios/LSJAsset.m" />        
     </platform>

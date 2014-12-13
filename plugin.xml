@@ -28,8 +28,8 @@
     <!-- ios -->
     <platform name="ios">
         <config-file target="config.xml" parent="/*" >
-            <feature name="LSJAsset">
-                <param name="ios-package" value="LSJAsset"/>
+            <feature name="JazzitNotificationPlugin">
+                <param name="ios-package" value="br.com.laminarsoft.jazzitnotification.JazzitNotificationPlugin"/>
             </feature>
         </config-file>     
 		    <js-module src="www/ios/jazzitnotification.js" name="jazzitnotification">

@@ -29,7 +29,7 @@ module.exports = {
      * Immediately cancels any currently running vibration.
      */
     jazzExibirMensagem: function() {
-        exec(null, null, "JazzitTest", "exibirMensagem", []);
+        exec(null, null, "JazzitNotificationPlugin", "exibirMensagem", []);
     }
 };
 

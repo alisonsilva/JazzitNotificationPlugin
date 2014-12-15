@@ -367,13 +367,14 @@ NSString * const DirectoryLocationDomain = @"DirectoryLocationDomain";
 - (void) retrieveAndShowFile : (CDVInvokedUrlCommand *) command {
     NSString *callbackId = command.callbackId;
     NSArray* arguments = command.arguments;
+    NSDictionary *dict = [arguments objectAtIndex:0];
     
-    NSString *login = [arguments objectAtIndex:0];
-    NSString *senha = [arguments objectAtIndex:1];
-    NSString *idMensagem = [arguments objectAtIndex:2];
-    NSString *nomeArquivo = [arguments objectAtIndex:3];
-    NSString *tipoArquivo = [arguments objectAtIndex:4];
-    NSString *myurl = [arguments objectAtIndex:5];
+    NSString *login = [dict valueForKey:@"usuario"];
+    NSString *senha = [dict valueForKey:@"senha"];
+    NSString *idMensagem = [dict valueForKey:@"idMensagem"];
+    NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
+    NSString *tipoArquivo = [dict valueForKey:@"type"];
+    NSString *myurl = [dict valueForKey:@"url"];
     
     myurl = [myurl stringByAppendingString:idMensagem];
     myurl = [myurl stringByAppendingString:@"/"];

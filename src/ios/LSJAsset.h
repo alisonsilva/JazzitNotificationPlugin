@@ -53,5 +53,6 @@
 - (void) openFile : (CDVInvokedUrlCommand *) command;
 - (void) encrypt : (CDVInvokedUrlCommand *) command;
 - (void) showMessage : (CDVInvokedUrlCommand *) command;
+- (void) exibirMensagem : (CDVInvokedUrlCommand *) command;
 
 @end

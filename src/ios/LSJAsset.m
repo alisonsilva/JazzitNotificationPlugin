@@ -540,6 +540,32 @@ NSString * const DirectoryLocationDomain = @"DirectoryLocationDomain";
     
 }
 
+- (void) exibirMensagem : (CDVInvokedUrlCommand *) command {
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Estou aqui"
+                                                    message:@"Estou aqui"
+                                                   delegate:nil
+                                          cancelButtonTitle:@"OK"
+                                          otherButtonTitles:nil];
+    [alert show];
+    
+    
+    // Create an object with a simple success property.
+    NSDictionary *jsonObj = [ [NSDictionary alloc]
+                             initWithObjectsAndKeys :
+                             @"true", @"success",
+                             nil
+                             ];
+    
+    CDVPluginResult *pluginResult = [ CDVPluginResult
+                                     resultWithStatus    : CDVCommandStatus_OK
+                                     messageAsDictionary : jsonObj
+                                     ];
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+}
+
 - (BOOL)isApplicationSentToBackground {
     BOOL ret = NO;
     

@@ -371,12 +371,14 @@ NSString * const DirectoryLocationDomain = @"DirectoryLocationDomain";
     
     NSString *login = [dict valueForKey:@"usuario"];
     NSString *senha = [dict valueForKey:@"senha"];
-    NSString *idMensagem = [dict valueForKey:@"idMensagem"];
+    NSNumber *idMensagem = [dict valueForKey:@"idMensagem"];
     NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
     NSString *tipoArquivo = [dict valueForKey:@"type"];
     NSString *myurl = [dict valueForKey:@"url"];
     
-    myurl = [myurl stringByAppendingString:idMensagem];
+    NSString *idMensagemStr = [NSString stringWithFormat:@"%d", [idMensagem intValue]];
+    
+    myurl = [myurl stringByAppendingString:idMensagemStr];
     myurl = [myurl stringByAppendingString:@"/"];
     myurl = [myurl stringByAppendingString:login];
     
@@ -392,7 +394,7 @@ NSString * const DirectoryLocationDomain = @"DirectoryLocationDomain";
             arquivoParser = nil;
         }
         
-        arquivoParser = [[ArquivoXMLParser init] alloc];
+        arquivoParser = [ArquivoXMLParser alloc];
         [arquivoParser setViewController:self.viewController];
         
         

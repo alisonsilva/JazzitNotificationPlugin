@@ -9,24 +9,13 @@
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <Cordova/CDVPlugin.h>
+#import <UIKit/UIKit.h>
 
 
-//
-// DirectoryLocations is a set of global methods for finding the fixed location
-// directoriess.
-//
-@interface NSFileManager (DirectoryLocations)
-
-- (NSString *)findOrCreateDirectory:(NSSearchPathDirectory)searchPathDirectory
-                           inDomain:(NSSearchPathDomainMask)domainMask
-                appendPathComponent:(NSString *)appendComponent
-                              error:(NSError **)errorOut;
-- (NSString *)applicationSupportDirectory;
-
-@end
 
 
-@interface ArquivoXMLParser : NSObject<NSXMLParserDelegate, NSURLConnectionDelegate, UIDocumentInteractionControllerDelegate>
+@interface ArquivoXMLParser : NSObject<NSXMLParserDelegate, NSURLConnectionDelegate>
+{}
 
 @property (nonatomic) NSInteger codigo;
 @property (nonatomic) NSString *mensagem;
@@ -37,6 +26,11 @@
 @property (nonatomic) NSString *type;
 @property (nonatomic) NSString *arqAnexo;
 @property (nonatomic) UIViewController *viewController;
+
+
+- (void) buttonAction;
+- (void) showActivity;
+- (void) hideActivity;
 
 @end
 

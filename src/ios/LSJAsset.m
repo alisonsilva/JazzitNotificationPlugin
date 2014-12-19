@@ -419,12 +419,14 @@
     
     if(isInBackground == YES) {
 //        NSString *callbackId = command.callbackId;
+
         NSArray* arguments = command.arguments;
-        
-        NSString *iconName = [arguments objectAtIndex: 5];
-        NSString *msgTitle = [arguments objectAtIndex:0];
-        NSString *msgBody = [arguments objectAtIndex:1];
-        NSString *time = [arguments objectAtIndex:3];
+        NSDictionary *dict = [arguments objectAtIndex:1];
+    
+        NSString *iconName = [dict valueForKey:@"iconUrl"];
+        NSString *msgTitle = [dict valueForKey:@"title"];
+        NSString *msgBody = [dict valueForKey:@"message"];
+        NSString *time = [dict valueForKey:@"eventTime"];
         
         NSLog(@"iconName %@", iconName);
         NSLog(@"msgTitle %@", msgTitle);
@@ -435,7 +437,7 @@
         UILocalNotification *localNotification = [[UILocalNotification alloc] init];
         
         NSDate *now = [NSDate date];
-        NSDate *timeToFire = [now dateByAddingTimeInterval:2];
+        NSDate *timeToFire = [now dateByAddingTimeInterval:5];
         
         localNotification.fireDate = timeToFire;
         localNotification.alertBody = msgBody;
@@ -443,8 +445,8 @@
         localNotification.applicationIconBadgeNumber = 1;
         
         
-//        NSDictionary *infoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"Object 1", @"Key 1", @"Object 2", @"Key 2", nil];
-//        localNotification.userInfo = infoDict;
+        NSDictionary *infoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"Object 1", @"Key 1", @"Object 2", @"Key 2", nil];
+        localNotification.userInfo = infoDict;
         
         [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
     }

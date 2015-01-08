@@ -63,7 +63,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private static final String NOTIFICATION_CLOSED_ACTION = "NOTIFICATION_CLOSED";
     private static final String NOTIFICATION_BUTTON_CLICKED_ACTION = "NOTIFICATION_BUTTON_CLICKED";
     
-    private static final String RAIZ_CHAMADA_ANEXO = "http://192.168.1.6:8080/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/";
+    private static final String RAIZ_CHAMADA_ANEXO = "http://tjdf199.tjdft.jus.br/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/";
 
     private static CordovaWebView webView;
     private static boolean safeToFireEvents = false;
@@ -163,14 +163,14 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			    		} catch (IOException e) {			
 			    			Log.e(LOG_TAG, "Erro de IO (JazzitNotificationPlutin): " + e.getMessage());
 			    		} catch (Exception e) {    			
-			    			Log.e(LOG_TAG, "Erro genÈrico (JazzitNotificationPlutin): " + e.getMessage());
+			    			Log.e(LOG_TAG, "Erro gen√©rico (JazzitNotificationPlutin): " + e.getMessage());
 			    		} finally {
 			    			progress.dismiss();
 			            }
 					}
 				}).start();
 			} else if(!isOnline()) {
-				Toast.makeText(cordActivity, "N„o h· conex„o com a Internet no momento", Toast.LENGTH_LONG).show();
+				Toast.makeText(cordActivity, "N√£o h√° conex√£o com a Internet no momento", Toast.LENGTH_LONG).show();
 			}
         	
         	callbackContext.success();
@@ -248,7 +248,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			cordActivity.startActivity(intent);
 		} catch (ActivityNotFoundException e) {
 			Log.e(LOG_TAG, "Erro abrindo arquivo: " + e.getMessage());
-			Toast.makeText(cordActivity, "N„o foi possÌvel abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+			Toast.makeText(cordActivity, "N√£o foi poss√≠vel abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
 	

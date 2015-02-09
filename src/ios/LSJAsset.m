@@ -7,6 +7,136 @@
 //
 #import "LSJAsset.h"
 
+enum
+{
+    DirectoryLocationErrorNoPathFound,
+    DirectoryLocationErrorFileExistsAtLocation
+};
+
+NSString * const DirectoryLocationDomain = @"DirectoryLocationDomain";
+
+
+@implementation NSFileManager (DirectoryLocations)
+
+//
+// findOrCreateDirectory:inDomain:appendPathComponent:error:
+//
+// Method to tie together the steps of:
+//	1) Locate a standard directory by search path and domain mask
+//  2) Select the first path in the results
+//	3) Append a subdirectory to that path
+//	4) Create the directory and intermediate directories if needed
+//	5) Handle errors by emitting a proper NSError object
+//
+// Parameters:
+//    searchPathDirectory - the search path passed to NSSearchPathForDirectoriesInDomains
+//    domainMask - the domain mask passed to NSSearchPathForDirectoriesInDomains
+//    appendComponent - the subdirectory appended
+//    errorOut - any error from file operations
+//
+// returns the path to the directory (if path found and exists), nil otherwise
+//
+- (NSString *)findOrCreateDirectory:(NSSearchPathDirectory)searchPathDirectory
+                           inDomain:(NSSearchPathDomainMask)domainMask
+                appendPathComponent:(NSString *)appendComponent
+                              error:(NSError **)errorOut
+{
+    //
+    // Search for the path
+    //
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(searchPathDirectory, domainMask, YES);
+    if ([paths count] == 0)
+    {
+        if (errorOut)
+        {
+            NSDictionary *userInfo =
+            [NSDictionary dictionaryWithObjectsAndKeys:
+             NSLocalizedStringFromTable(
+                                        @"No path found for directory in domain.",
+                                        @"Errors",
+                                        nil),
+             NSLocalizedDescriptionKey,
+             [NSNumber numberWithInteger:searchPathDirectory],
+             @"NSSearchPathDirectory",
+             [NSNumber numberWithInteger:domainMask],
+             @"NSSearchPathDomainMask",
+             nil];
+            *errorOut =
+            [NSError
+             errorWithDomain:DirectoryLocationDomain
+             code:DirectoryLocationErrorNoPathFound
+             userInfo:userInfo];
+        }
+        return nil;
+    }
+    
+    //
+    // Normally only need the first path returned
+    //
+    NSString *resolvedPath = [paths objectAtIndex:0];
+    
+    //
+    // Append the extra path component
+    //
+    if (appendComponent)
+    {
+        resolvedPath = [resolvedPath stringByAppendingPathComponent:appendComponent];
+    }
+    
+    //
+    // Create the path if it doesn't exist
+    //
+    NSError *error = nil;
+    BOOL success = [self
+                    createDirectoryAtPath:resolvedPath
+                    withIntermediateDirectories:YES
+                    attributes:nil
+                    error:&error];
+    if (!success)
+    {
+        if (errorOut)
+        {
+            *errorOut = error;
+        }
+        return nil;
+    }
+    
+    //
+    // If we've made it this far, we have a success
+    //
+    if (errorOut)
+    {
+        *errorOut = nil;
+    }
+    return resolvedPath;
+}
+
+//
+// applicationSupportDirectory
+//
+// Returns the path to the applicationSupportDirectory (creating it if it doesn't
+// exist).
+//
+- (NSString *)applicationSupportDirectory
+{
+    NSString *executableName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleExecutable"];
+    NSError *error;
+    NSString *result =
+    [self
+     findOrCreateDirectory:NSApplicationSupportDirectory
+     inDomain:NSUserDomainMask
+     appendPathComponent:executableName
+     error:&error];
+    if (!result)
+    {
+        NSLog(@"Unable to find or create application support directory:\n%@", error);
+    }
+    return result;
+}
+
+@end
+
+
 
 @interface ArquivoXMLParser()
 {
@@ -18,9 +148,6 @@
 @property NSString *currentElement;
 @property NSDictionary *attributes;
 @property UIDocumentInteractionController *documentInteractionController;
-@property UIWebView *myWebView;
-@property UINavigationBar *myBar;
-@property UIActivityIndicatorView *activityIndicator;
 
 -(void) escreveArquivo;
 -(void) exibeArquivo:(NSString *)path;
@@ -32,7 +159,7 @@
     ArquivoXMLParser *arquivoParser;
 }
 @property (nonatomic) BOOL isDataSourceAvailable;
-@property UIWebView *assetWebView;
+
 
 - (BOOL) isApplicationSentToBackground;
 
@@ -56,10 +183,7 @@
     //each time new element is found reset string
     self.currentXMLValue = [[NSMutableString alloc] init];
     self.currentElement = [[NSString alloc] initWithString:elementName];
-
-    if([elementName isEqualToString:@"info_anexo"]) {
-        self.attributes = [[NSDictionary alloc] initWithDictionary:attributeDict];
-    }
+    self.attributes = [[NSDictionary alloc] initWithDictionary:attributeDict];
     
 }
 //this is triggered when there is closing tag </object>, </alias> and so on. Use it to set object's properties. If you get </object> - add object to array.
@@ -123,14 +247,13 @@
     _xmlParser = [[NSXMLParser alloc]initWithData:_responseData];
     [_xmlParser setDelegate:self];
     [_xmlParser parse];
-    [self hideActivity];
+    
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     // The request has failed for some reason!
-    // Check the error var∫
+    // Check the error var
     NSLog(@"Erro ao recuperar arquivo");
-    [self hideActivity];
 }
 
 /*
@@ -138,113 +261,60 @@
  */
 -(void) escreveArquivo {
     if(self.arqAnexo) {
-        NSArray *pathArray = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString *path = pathArray[0];
+        NSString *path = [[NSFileManager defaultManager] applicationSupportDirectory];
         
         if (path) {
-            path = [path stringByAppendingPathComponent:@"JazzIT"];
-            path = [path stringByAppendingPathComponent:self.nomeArquivo];
+            path = [path stringByAppendingString:@"/"];
+            path = [path stringByAppendingString:self.nomeArquivo];
             
             NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:self.arqAnexo options:0];
-
-            self.myWebView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.viewController.view.frame.size.width,self.viewController.view.frame.size.height - 50 )];
-            [self.viewController.view addSubview:self.myWebView];
+//            NSString *decodedString = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
             
-            [self.myWebView loadData:decodedData MIMEType:self.type textEncodingName:nil baseURL:nil];
+            NSFileHandle *filehandle = [NSFileHandle fileHandleForWritingAtPath:path];
+            [filehandle seekToEndOfFile];
+            [filehandle writeData:decodedData];
+            [filehandle closeFile];
             
-            
-            self.myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
-            [self.viewController.view addSubview:self.myBar];
-            
-            UIBarButtonItem *backButton = [[UIBarButtonItem alloc]
-                                           initWithTitle:@"voltar"
-                                           style:UIBarButtonItemStyleDone
-                                           target:self
-                                           action:@selector(buttonAction)];
-            UINavigationItem *itemBackButton = [[UINavigationItem alloc] initWithTitle:@""];
-            itemBackButton.leftBarButtonItem = backButton;
-            itemBackButton.hidesBackButton = NO;
-            [self.myBar pushNavigationItem:itemBackButton animated:NO];
-            
-            
-            
-//            NSFileManager *fManager = [NSFileManager defaultManager];
-//            NSError *error;
-//            if ([fManager fileExistsAtPath:path]) {
-//                BOOL success = [fManager removeItemAtPath:path error:&error];
-//                if(success) {
-//                    NSLog(@"Arquivo removido");
-//                } else {
-//                    NSLog(@"Erro ao remover arquivo: %@", [error localizedDescription]);
-//                }
-//            }
-//            if([fManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error]) {
-//                [fManager createFileAtPath:path contents:decodedData attributes:nil];
-//                
-//                [self exibeArquivo:path];
-//            } else {
-//                NSLog(@"Erro ao criar diretório: %@", [error localizedDescription]);
-//                
-//            }
+            [self exibeArquivo:path];
         }
     }
-}
-
--(void)buttonAction{
-    NSLog(@"Button sendo clicado");
-    [self.myBar removeFromSuperview];
-    [self.myWebView removeFromSuperview];
-    [self.myWebView stopLoading];
-    self.myWebView.delegate = nil;
-    self.myBar.delegate = nil;
 }
 
 -(void) exibeArquivo:(NSString *)path {
     NSURL *targetUrl = [NSURL fileURLWithPath:path];
     
     if (targetUrl) {
-//        NSURLRequest *pdfReq = [[NSURLRequest alloc] initWithURL:targetUrl];
-//        [pdfViewer loadRequest:pdfReq];
+        self.documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:targetUrl];
         
-//        self.documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:targetUrl];
-//        
-//        self.documentInteractionController.delegate = self;
-//        
-//        self.documentInteractionController.name = @"Title";
-//        self.documentInteractionController.UTI = @"com.adobe.pdf";
-//        [self.documentInteractionController presentOptionsMenuFromRect:CGRectZero
-//                                                                inView:nil
-//                                                              animated:YES];
+        self.documentInteractionController.delegate = self;
         
-        NSURLRequest *urlRequest = [NSURLRequest requestWithURL:targetUrl];
-        UIWebView *webView = [[UIWebView alloc] initWithFrame: self.viewController.view.frame];
-        [self.viewController.view addSubview:webView];
-        
-        [webView loadRequest:urlRequest];
+        //self.documentInteractionController.name = @"Title";
+        //self.documentInteractionController.UTI = @"com.adobe.pdf";
+        [self.documentInteractionController presentOptionsMenuFromRect:CGRectZero
+                                                                inView:nil
+                                                              animated:YES];
     }
     
 }
 
--(void)showActivity {
-    self.activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-    CGRect activityFrame = CGRectMake(130,100,50,50);
-    [self.activityIndicator setFrame:activityFrame];
-    self.activityIndicator.layer.cornerRadius = 05;
-    self.activityIndicator.opaque = NO;
-    self.activityIndicator.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.6f];
-    self.activityIndicator.center = self.viewController.view.center;
-    self.activityIndicator.hidesWhenStopped = TRUE;
-    [self.activityIndicator setColor:[UIColor colorWithRed:0.6 green:0.8 blue:1.0 alpha:1.0]];
-    [self.activityIndicator startAnimating];
-    [self.viewController.view addSubview: self.activityIndicator];
+
+
+#pragma mark - UIDocumentInteractionControllerDelegate
+
+- (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller
+{
+    return self.viewController;
 }
 
--(void)hideActivity {
-    [self.activityIndicator stopAnimating];
-    [self.activityIndicator removeFromSuperview];
-    self.activityIndicator = nil;
+- (UIView *)documentInteractionControllerViewForPreview:(UIDocumentInteractionController *)controller
+{
+    return self.viewController.view;
 }
 
+- (CGRect)documentInteractionControllerRectForPreview:(UIDocumentInteractionController *)controller
+{
+    return self.viewController.view.frame;
+}
 
 @end
 
@@ -295,20 +365,18 @@
  * 5     url chamada arquivo
  */
 - (void) retrieveAndShowFile : (CDVInvokedUrlCommand *) command {
-//    NSString *callbackId = command.callbackId;
+    NSString *callbackId = command.callbackId;
     NSArray* arguments = command.arguments;
     NSDictionary *dict = [arguments objectAtIndex:0];
     
     NSString *login = [dict valueForKey:@"usuario"];
-//    NSString *senha = [dict valueForKey:@"senha"];
-    NSNumber *idMensagem = [dict valueForKey:@"idMensagem"];
-//    NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
-//    NSString *tipoArquivo = [dict valueForKey:@"type"];
+    NSString *senha = [dict valueForKey:@"senha"];
+    NSString *idMensagem = [dict valueForKey:@"idMensagem"];
+    NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
+    NSString *tipoArquivo = [dict valueForKey:@"type"];
     NSString *myurl = [dict valueForKey:@"url"];
     
-    NSString *idMensagemStr = [NSString stringWithFormat:@"%d", [idMensagem intValue]];
-    
-    myurl = [myurl stringByAppendingString:idMensagemStr];
+    myurl = [myurl stringByAppendingString:idMensagem];
     myurl = [myurl stringByAppendingString:@"/"];
     myurl = [myurl stringByAppendingString:login];
     
@@ -324,12 +392,20 @@
             arquivoParser = nil;
         }
         
-        arquivoParser = [ArquivoXMLParser alloc];
+        arquivoParser = [[ArquivoXMLParser init] alloc];
         [arquivoParser setViewController:self.viewController];
-        [arquivoParser showActivity];
+        
         
         currentConnection = [[NSURLConnection alloc]initWithRequest:request delegate:arquivoParser];
-
+        
+        
+//        [NSURLConnection sendAsynchronousRequest:request
+//                                           queue:[NSOperationQueue mainQueue]
+//                               completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError){
+//                                   if(data.length > 0 && connectionError == nil) {
+//                                       
+//                                   }
+//                               }];
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Aguarde" message:@"A conexão não está disponível no momento" delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
         [alert show];
@@ -351,78 +427,6 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     
 }
-
-
-
-/*
- * Index argument
- * 0     login usuario
- * 1     senha usuario
- * 2     id da mensagem
- * 3     nome do arquivo
- * 4     tipo do arquivo
- * 5     url chamada arquivo
- */
-- (void) showURL:(CDVInvokedUrlCommand *) command {
-    //    NSString *callbackId = command.callbackId;
-    NSArray* arguments = command.arguments;
-    NSDictionary *dict = [arguments objectAtIndex:0];
-    
-    //NSString *login = [dict valueForKey:@"usuario"];
-    //    NSString *senha = [dict valueForKey:@"senha"];
-    //NSNumber *idMensagem = [dict valueForKey:@"idMensagem"];
-    //    NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
-    //    NSString *tipoArquivo = [dict valueForKey:@"type"];
-    NSString *myurl = [dict valueForKey:@"url"];
-    
-    
-    BOOL netAvailable = [self isDataSourceAvailable];
-    if(netAvailable == YES) {
-        NSURL *url = [NSURL URLWithString:myurl];
-        NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        UIWebView *webView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.ownController.view.frame.size.width,self.ownController.view.frame.size.height - 50 )];
-        [self.ownController.view addSubview:self.webView];
-        
-        [webView loadRequest:request];
-        
-        
-        UINavigationBar *myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
-        [self.ownController.view addSubview:myBar];
-        
-        UIBarButtonItem *backButton = [[UIBarButtonItem alloc]
-                                       initWithTitle:@"voltar"
-                                       style:UIBarButtonItemStyleDone
-                                       target:self
-                                       action:@selector(buttonAction)];
-        UINavigationItem *itemBackButton = [[UINavigationItem alloc] initWithTitle:@""];
-        itemBackButton.leftBarButtonItem = backButton;
-        itemBackButton.hidesBackButton = NO;
-        [myBar pushNavigationItem:itemBackButton animated:NO];
-        
-    } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Alerta" message:@"A conexão não está disponível no momento" delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
-        [alert show];
-    }
-    
-    
-    // Create an object with a simple success property.
-    NSDictionary *jsonObj = [ [NSDictionary alloc]
-                             initWithObjectsAndKeys :
-                             @"true", @"success",
-                             nil
-                             ];
-    
-    CDVPluginResult *pluginResult = [ CDVPluginResult
-                                     resultWithStatus    : CDVCommandStatus_OK
-                                     messageAsDictionary : jsonObj
-                                     ];
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
-}
-
-
-
 
 - (void) storeFile : (CDVInvokedUrlCommand *) command {
     // Create an object with a simple success property.
@@ -460,6 +464,22 @@
     
 }
 
+- (void) encrypt : (CDVInvokedUrlCommand *) command {
+    // Create an object with a simple success property.
+    NSDictionary *jsonObj = [ [NSDictionary alloc]
+                             initWithObjectsAndKeys :
+                             @"true", @"success",
+                             nil
+                             ];
+    
+    CDVPluginResult *pluginResult = [ CDVPluginResult
+                                     resultWithStatus    : CDVCommandStatus_OK
+                                     messageAsDictionary : jsonObj
+                                     ];
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+}
 
 /*  showMessage arguments:
  * INDEX   ARGUMENT
@@ -474,15 +494,13 @@
     BOOL isInBackground = [self isApplicationSentToBackground];
     
     if(isInBackground == YES) {
-//        NSString *callbackId = command.callbackId;
-
+        NSString *callbackId = command.callbackId;
         NSArray* arguments = command.arguments;
-        NSDictionary *dict = [arguments objectAtIndex:1];
-    
-        NSString *iconName = [dict valueForKey:@"iconUrl"];
-        NSString *msgTitle = [dict valueForKey:@"title"];
-        NSString *msgBody = [dict valueForKey:@"message"];
-        NSString *time = [dict valueForKey:@"eventTime"];
+        
+        NSString *iconName = [arguments objectAtIndex: 5];
+        NSString *msgTitle = [arguments objectAtIndex:0];
+        NSString *msgBody = [arguments objectAtIndex:1];
+        NSString *time = [arguments objectAtIndex:3];
         
         NSLog(@"iconName %@", iconName);
         NSLog(@"msgTitle %@", msgTitle);
@@ -493,7 +511,7 @@
         UILocalNotification *localNotification = [[UILocalNotification alloc] init];
         
         NSDate *now = [NSDate date];
-        NSDate *timeToFire = [now dateByAddingTimeInterval:5];
+        NSDate *timeToFire = [now dateByAddingTimeInterval:2];
         
         localNotification.fireDate = timeToFire;
         localNotification.alertBody = msgBody;
@@ -501,8 +519,8 @@
         localNotification.applicationIconBadgeNumber = 1;
         
         
-        NSDictionary *infoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"Object 1", @"Key 1", @"Object 2", @"Key 2", nil];
-        localNotification.userInfo = infoDict;
+//        NSDictionary *infoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"Object 1", @"Key 1", @"Object 2", @"Key 2", nil];
+//        localNotification.userInfo = infoDict;
         
         [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
     }

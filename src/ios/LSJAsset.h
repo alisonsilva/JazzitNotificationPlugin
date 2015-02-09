@@ -9,13 +9,24 @@
 #import <Foundation/Foundation.h>
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <Cordova/CDVPlugin.h>
-#import <UIKit/UIKit.h>
 
 
+//
+// DirectoryLocations is a set of global methods for finding the fixed location
+// directoriess.
+//
+@interface NSFileManager (DirectoryLocations)
+
+- (NSString *)findOrCreateDirectory:(NSSearchPathDirectory)searchPathDirectory
+                           inDomain:(NSSearchPathDomainMask)domainMask
+                appendPathComponent:(NSString *)appendComponent
+                              error:(NSError **)errorOut;
+- (NSString *)applicationSupportDirectory;
+
+@end
 
 
-@interface ArquivoXMLParser : NSObject<NSXMLParserDelegate, NSURLConnectionDelegate>
-{}
+@interface ArquivoXMLParser : NSObject<NSXMLParserDelegate, NSURLConnectionDelegate, UIDocumentInteractionControllerDelegate>
 
 @property (nonatomic) NSInteger codigo;
 @property (nonatomic) NSString *mensagem;
@@ -27,25 +38,20 @@
 @property (nonatomic) NSString *arqAnexo;
 @property (nonatomic) UIViewController *viewController;
 
-
-- (void) buttonAction;
-- (void) showActivity;
-- (void) hideActivity;
-
 @end
 
-@interface LSJAsset : CDVPlugin <UIAlertViewDelegate, NSURLConnectionDelegate>
+@interface LSJAsset : CDVPlugin <UIAlertViewDelegate>
 {}
-@property (nonatomic) UIViewController *ownController;
+
 
 
 // exec API
 - (void) goHome : (CDVInvokedUrlCommand *) command;
 - (void) goBackground : (CDVInvokedUrlCommand *) command;
 - (void) retrieveAndShowFile : (CDVInvokedUrlCommand *) command;
-- (void) showURL : (CDVInvokedUrlCommand *) command;
 - (void) storeFile : (CDVInvokedUrlCommand *) command;
 - (void) openFile : (CDVInvokedUrlCommand *) command;
+- (void) encrypt : (CDVInvokedUrlCommand *) command;
 - (void) showMessage : (CDVInvokedUrlCommand *) command;
 - (void) exibirMensagem : (CDVInvokedUrlCommand *) command;
 

@@ -24,9 +24,6 @@ module.exports = {
     jazzRetrieveAndShowFile : function(successCallback, failureCallback, options) {
         exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'retrieveAndShowFile', [options]);
     },
-    jazzShowURL : function(successCallback, failureCallback, options) {
-        exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'showURL', [options]);
-    },
     
     /**
      * Immediately cancels any currently running vibration.

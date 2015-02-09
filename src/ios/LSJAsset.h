@@ -34,7 +34,7 @@
 
 @end
 
-@interface LSJAsset : CDVPlugin <UIAlertViewDelegate, NSURLConnectionDataDelegate>
+@interface LSJAsset : CDVPlugin <UIAlertViewDelegate>
 {}
 @property (nonatomic) UIViewController *ownController;
 

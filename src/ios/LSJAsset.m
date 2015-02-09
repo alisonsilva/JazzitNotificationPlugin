@@ -381,13 +381,13 @@
         NSURL *url = [NSURL URLWithString:myurl];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         UIWebView *webView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.ownController.view.frame.size.width,self.ownController.view.frame.size.height - 50 )];
-        [self.viewController.view addSubview:self.webView];
+        [self.ownController.view addSubview:self.webView];
         
         [webView loadRequest:request];
         
         
         UINavigationBar *myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
-        [self.viewController.view addSubview:myBar];
+        [self.ownController.view addSubview:myBar];
         
         UIBarButtonItem *backButton = [[UIBarButtonItem alloc]
                                        initWithTitle:@"voltar"
@@ -460,22 +460,6 @@
     
 }
 
-- (void) encrypt : (CDVInvokedUrlCommand *) command {
-    // Create an object with a simple success property.
-    NSDictionary *jsonObj = [ [NSDictionary alloc]
-                             initWithObjectsAndKeys :
-                             @"true", @"success",
-                             nil
-                             ];
-    
-    CDVPluginResult *pluginResult = [ CDVPluginResult
-                                     resultWithStatus    : CDVCommandStatus_OK
-                                     messageAsDictionary : jsonObj
-                                     ];
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
-}
 
 /*  showMessage arguments:
  * INDEX   ARGUMENT

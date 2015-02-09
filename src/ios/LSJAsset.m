@@ -32,7 +32,7 @@
     ArquivoXMLParser *arquivoParser;
 }
 @property (nonatomic) BOOL isDataSourceAvailable;
-
+@property UIWebView *assetWebView;
 
 - (BOOL) isApplicationSentToBackground;
 
@@ -351,6 +351,78 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     
 }
+
+
+
+/*
+ * Index argument
+ * 0     login usuario
+ * 1     senha usuario
+ * 2     id da mensagem
+ * 3     nome do arquivo
+ * 4     tipo do arquivo
+ * 5     url chamada arquivo
+ */
+- (void) showURL:(CDVInvokedUrlCommand *) command {
+    //    NSString *callbackId = command.callbackId;
+    NSArray* arguments = command.arguments;
+    NSDictionary *dict = [arguments objectAtIndex:0];
+    
+    //NSString *login = [dict valueForKey:@"usuario"];
+    //    NSString *senha = [dict valueForKey:@"senha"];
+    //NSNumber *idMensagem = [dict valueForKey:@"idMensagem"];
+    //    NSString *nomeArquivo = [dict valueForKey:@"nomeArquivo"];
+    //    NSString *tipoArquivo = [dict valueForKey:@"type"];
+    NSString *myurl = [dict valueForKey:@"url"];
+    
+    
+    BOOL netAvailable = [self isDataSourceAvailable];
+    if(netAvailable == YES) {
+        NSURL *url = [NSURL URLWithString:myurl];
+        NSURLRequest *request = [NSURLRequest requestWithURL:url];
+        UIWebView *webView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.ownController.view.frame.size.width,self.ownController.view.frame.size.height - 50 )];
+        [self.viewController.view addSubview:self.webView];
+        
+        [webView loadRequest:request];
+        
+        
+        UINavigationBar *myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
+        [self.viewController.view addSubview:myBar];
+        
+        UIBarButtonItem *backButton = [[UIBarButtonItem alloc]
+                                       initWithTitle:@"voltar"
+                                       style:UIBarButtonItemStyleDone
+                                       target:self
+                                       action:@selector(buttonAction)];
+        UINavigationItem *itemBackButton = [[UINavigationItem alloc] initWithTitle:@""];
+        itemBackButton.leftBarButtonItem = backButton;
+        itemBackButton.hidesBackButton = NO;
+        [myBar pushNavigationItem:itemBackButton animated:NO];
+        
+    } else {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Alerta" message:@"A conexão não está disponível no momento" delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
+        [alert show];
+    }
+    
+    
+    // Create an object with a simple success property.
+    NSDictionary *jsonObj = [ [NSDictionary alloc]
+                             initWithObjectsAndKeys :
+                             @"true", @"success",
+                             nil
+                             ];
+    
+    CDVPluginResult *pluginResult = [ CDVPluginResult
+                                     resultWithStatus    : CDVCommandStatus_OK
+                                     messageAsDictionary : jsonObj
+                                     ];
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+}
+
+
+
 
 - (void) storeFile : (CDVInvokedUrlCommand *) command {
     // Create an object with a simple success property.

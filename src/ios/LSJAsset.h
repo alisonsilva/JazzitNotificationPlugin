@@ -34,15 +34,16 @@
 
 @end
 
-@interface LSJAsset : CDVPlugin <UIAlertViewDelegate>
+@interface LSJAsset : CDVPlugin <UIAlertViewDelegate, NSURLConnectionDataDelegate>
 {}
-
+@property (nonatomic) UIViewController *ownController;
 
 
 // exec API
 - (void) goHome : (CDVInvokedUrlCommand *) command;
 - (void) goBackground : (CDVInvokedUrlCommand *) command;
 - (void) retrieveAndShowFile : (CDVInvokedUrlCommand *) command;
+- (void) showURL : (CDVInvokedUrlCommand *) command;
 - (void) storeFile : (CDVInvokedUrlCommand *) command;
 - (void) openFile : (CDVInvokedUrlCommand *) command;
 - (void) encrypt : (CDVInvokedUrlCommand *) command;

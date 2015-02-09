@@ -32,6 +32,8 @@
     ArquivoXMLParser *arquivoParser;
 }
 @property (nonatomic) BOOL isDataSourceAvailable;
+@property UIWebView *myWebView;
+@property UINavigationBar *myBar;
 
 
 - (BOOL) isApplicationSentToBackground;
@@ -248,6 +250,8 @@
 
 @end
 
+
+
 @implementation LSJAsset
 
 
@@ -379,14 +383,13 @@
     if(netAvailable == YES) {
         NSURL *url = [NSURL URLWithString:myurl];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        UIWebView *webView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.ownController.view.frame.size.width,self.ownController.view.frame.size.height - 50 )];
-        [self.ownController.view addSubview:self.webView];
+        self.myWebView = [[UIWebView alloc] initWithFrame: CGRectMake(0, 50, self.viewController.view.frame.size.width,self.viewController.view.frame.size.height - 50 )];
+        [self.viewController.view addSubview:self.myWebView];
+        [self.myWebView loadRequest:request];
         
-        [webView loadRequest:request];
         
-        
-        UINavigationBar *myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
-        [self.ownController.view addSubview:myBar];
+        self.myBar = [[UINavigationBar alloc]initWithFrame:CGRectMake(0, 0, 320, 50)];
+        [self.viewController.view addSubview:self.myBar];
         
         UIBarButtonItem *backButton = [[UIBarButtonItem alloc]
                                        initWithTitle:@"voltar"
@@ -396,7 +399,7 @@
         UINavigationItem *itemBackButton = [[UINavigationItem alloc] initWithTitle:@""];
         itemBackButton.leftBarButtonItem = backButton;
         itemBackButton.hidesBackButton = NO;
-        [myBar pushNavigationItem:itemBackButton animated:NO];
+        [self.myBar pushNavigationItem:itemBackButton animated:NO];
         
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Alerta" message:@"A conexão não está disponível no momento" delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
@@ -420,6 +423,14 @@
     
 }
 
+-(void)buttonAction{
+    NSLog(@"Button sendo clicado");
+    [self.myBar removeFromSuperview];
+    [self.myWebView removeFromSuperview];
+    [self.myWebView stopLoading];
+    self.myWebView.delegate = nil;
+    self.myBar.delegate = nil;
+}
 
 - (void) storeFile : (CDVInvokedUrlCommand *) command {
     // Create an object with a simple success property.

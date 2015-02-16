@@ -15,8 +15,6 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
-import android.location.LocationManager;
-import android.location.Location;
 import org.apache.cordova.CordovaWebView;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -46,6 +44,8 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.location.LocationManager;
+import android.location.Location;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.IntentCompat;
@@ -119,20 +119,6 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             this.cordova.getActivity().moveTaskToBack(true);
 			callbackContext.success();
 			return true;
-        } else if("lastLocation".equals(action)) {
-			LocationManager locMan = (LocationManager)this.cordova.getActivity().getSystemService(Context.LOCATION_SERVICE);
-			String locationProvider = LocationManager.NETWORK_PROVIDER;
-			Location lastKnownLocation = locMan.getLastKnownLocation(locationProvider);
-			
-			JSONObject objRet = new JSONObject();
-			JSONObject objCoord = new JSONObject();
-			objRet.put("coords", objCoord);
-			objCoord.put("latitude", lastKnownLocation.getLatitude());
-			objCoord.put("longitude", lastKnownLocation.getLongitude());
-			objCoord.put("altitude", lastKnownLocation.getAltitude());
-			
-			callbackContext.success(objRet);
-			return true;			
         } else if("retrieveAndShowFile".equals(action)) {
         	JSONObject options = args.getJSONObject(0);
         	final String usuario = options.getString("usuario");

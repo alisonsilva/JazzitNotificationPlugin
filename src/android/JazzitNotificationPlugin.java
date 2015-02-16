@@ -15,6 +15,8 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaResourceApi;
+import android.location.LocationManager;
+import android.location.Location;
 import org.apache.cordova.CordovaWebView;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;

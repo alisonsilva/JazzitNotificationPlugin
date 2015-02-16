@@ -41,12 +41,15 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.location.LocationManager;
-import android.location.Location;
+import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.IntentCompat;
 import android.util.Base64;
@@ -64,6 +67,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
     private static final String NOTIFICATION_CLICKED_ACTION = "NOTIFICATION_CLICKED";
     private static final String NOTIFICATION_CLOSED_ACTION = "NOTIFICATION_CLOSED";
     private static final String NOTIFICATION_BUTTON_CLICKED_ACTION = "NOTIFICATION_BUTTON_CLICKED";
+    private CallbackContext spCallbackContext;        // The callback context from which we were invoked.
     
     private static final String RAIZ_CHAMADA_ANEXO = "http://tjdf199.tjdft.jus.br/jazzforms/servicos/mensagemService/mensagem/anexoMensagemUsuario/";
 
@@ -103,6 +107,8 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 
 	@Override
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        this.spCallbackContext = callbackContext;
+
 		if ("goHome".equals(action)) {
 			try {				
 				Intent i = new Intent(Intent.ACTION_MAIN);
@@ -118,6 +124,49 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 		} else if("goBackground".equals(action)) {
             this.cordova.getActivity().moveTaskToBack(true);
 			callbackContext.success();
+			return true;
+        } else if("lastLocation".equals(action)) {
+			final LocationManager locMan = (LocationManager) this.cordova.getActivity().getSystemService(Context.LOCATION_SERVICE);
+			String locationProvider = LocationManager.NETWORK_PROVIDER;
+			boolean netEnabeled = locMan.isProviderEnabled(locationProvider);
+			
+			Location lastKnownLocation = locMan.getLastKnownLocation(locationProvider);
+
+			final LocationListener locationListener = new LocationListener() {
+				public void onLocationChanged(Location location) {
+					JSONObject objRet = new JSONObject();
+					JSONObject objCoord = new JSONObject();
+					try {
+						objRet.put("coords", objCoord);
+						objCoord.put("latitude", location.getLatitude());
+						objCoord.put("longitude", location.getLongitude());
+						objCoord.put("altitude", location.getAltitude());
+						spCallbackContext.success(objRet);
+					} catch (JSONException e) {
+					}
+				}
+
+				public void onStatusChanged(String provider, int status, Bundle extras) {
+				}
+
+				public void onProviderEnabled(String provider) {
+				}
+
+				public void onProviderDisabled(String provider) {
+				}
+			};
+
+			if (lastKnownLocation == null) {
+   				locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+			} else {
+				JSONObject objRet = new JSONObject();
+				JSONObject objCoord = new JSONObject();
+				objRet.put("coords", objCoord);
+				objCoord.put("latitude", lastKnownLocation.getLatitude());
+				objCoord.put("longitude", lastKnownLocation.getLongitude());
+				objCoord.put("altitude", lastKnownLocation.getAltitude());
+				callbackContext.success(objRet);
+			}
 			return true;
         } else if("retrieveAndShowFile".equals(action)) {
         	JSONObject options = args.getJSONObject(0);
@@ -165,14 +214,14 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			    		} catch (IOException e) {			
 			    			Log.e(LOG_TAG, "Erro de IO (JazzitNotificationPlutin): " + e.getMessage());
 			    		} catch (Exception e) {    			
-			    			Log.e(LOG_TAG, "Erro genérico (JazzitNotificationPlutin): " + e.getMessage());
+			    			Log.e(LOG_TAG, "Erro genÃ©rico (JazzitNotificationPlutin): " + e.getMessage());
 			    		} finally {
 			    			progress.dismiss();
 			            }
 					}
 				}).start();
 			} else if(!isOnline()) {
-				Toast.makeText(cordActivity, "Não há conexão com a Internet no momento", Toast.LENGTH_LONG).show();
+				Toast.makeText(cordActivity, "NÃ£o hÃ¡ conexÃ£o com a Internet no momento", Toast.LENGTH_LONG).show();
 			}
         	
         	callbackContext.success();
@@ -250,7 +299,7 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
 			cordActivity.startActivity(intent);
 		} catch (ActivityNotFoundException e) {
 			Log.e(LOG_TAG, "Erro abrindo arquivo: " + e.getMessage());
-			Toast.makeText(cordActivity, "Não foi possível abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+			Toast.makeText(cordActivity, "NÃ£o foi possÃ­vel abrir arquivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
 		}
 	}
 	

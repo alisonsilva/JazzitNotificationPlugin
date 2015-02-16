@@ -27,6 +27,9 @@ module.exports = {
     jazzShowURL : function(successCallback, failureCallback, options) {
         exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'showURL', [options]);
     },
+    jazzRetrieveLastLocation : function(successCallback, failureCallback, options) {
+        exec(successCallback, failureCallback, 'JazzitNotificationPlugin', 'lastLocation', [options]);
+    },      
     
     /**
      * Immediately cancels any currently running vibration.

@@ -117,6 +117,20 @@ public class JazzitNotificationPlugin extends CordovaPlugin{
             this.cordova.getActivity().moveTaskToBack(true);
 			callbackContext.success();
 			return true;
+        } else if("lastLocation".equals(action)) {
+			LocationManager locMan = (LocationManager)this.cordova.getActivity().getSystemService(Context.LOCATION_SERVICE);
+			String locationProvider = LocationManager.NETWORK_PROVIDER;
+			Location lastKnownLocation = locMan.getLastKnownLocation(locationProvider);
+			
+			JSONObject objRet = new JSONObject();
+			JSONObject objCoord = new JSONObject();
+			objRet.put("coords", objCoord);
+			objCoord.put("latitude", lastKnownLocation.getLatitude());
+			objCoord.put("longitude", lastKnownLocation.getLongitude());
+			objCoord.put("altitude", lastKnownLocation.getAltitude());
+			
+			callbackContext.success(objRet);
+			return true;			
         } else if("retrieveAndShowFile".equals(action)) {
         	JSONObject options = args.getJSONObject(0);
         	final String usuario = options.getString("usuario");
